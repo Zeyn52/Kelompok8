@@ -43,9 +43,15 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         Log::info('Logout request received for user:', ['user_id' => Auth::id()]);
+        
+        // Logout pengguna
         Auth::logout();
+        
+        // Hapus sesi dan regenerasi token
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/')->with('success', 'Logout berhasil!');
+        
+        // Redirect ke halaman login awal
+        return redirect('/login')->with('success', 'Logout berhasil!');
     }
 }
