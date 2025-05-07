@@ -24,7 +24,6 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 250px;
             background: #2d6a4f;
@@ -80,7 +79,6 @@
             font-size: 18px;
         }
 
-        /* Main Content */
         .main-content {
             flex: 1;
             margin-left: 250px;
@@ -88,7 +86,6 @@
             min-height: 100vh;
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -136,7 +133,6 @@
             background: #40916c;
         }
 
-        /* Dashboard Content */
         .dashboard-content {
             padding: 30px;
         }
@@ -193,7 +189,6 @@
             color: #666666;
         }
 
-        /* Letter Table Section */
         .letter-section {
             background: #ffffff;
             padding: 25px;
@@ -262,11 +257,11 @@
         }
 
         .letter-section .table th.sorted-asc i::after {
-            content: '\f0de'; /* Up arrow */
+            content: '\f0de';
         }
 
         .letter-section .table th.sorted-desc i::after {
-            content: '\f0dd'; /* Down arrow */
+            content: '\f0dd';
         }
 
         .letter-section .table td {
@@ -321,7 +316,6 @@
             background: #d00000;
         }
 
-        /* Modal Styling */
         .modal-content {
             border-radius: 10px;
             border: none;
@@ -379,7 +373,6 @@
             background: #40916c;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
                 width: 200px;
@@ -410,7 +403,6 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="logo">
             <h2>SIMAK</h2>
@@ -424,7 +416,7 @@
             </li>
             @if (Auth::user()->role == 'mahasiswa')
                 <li>
-                    <a href="#">
+                    <a href="{{ route('letters.create') }}">
                         <i class="fas fa-file-alt"></i>
                         <span>Pengajuan Surat</span>
                     </a>
@@ -465,9 +457,7 @@
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Header -->
         <div class="header">
             <h1>Dashboard</h1>
             <div class="user-info">
@@ -479,9 +469,7 @@
             </div>
         </div>
 
-        <!-- Dashboard Content -->
         <div class="dashboard-content">
-            <!-- Welcome Section -->
             <div class="welcome-section">
                 @if (Auth::user()->role == 'mahasiswa')
                     <h2>Selamat Datang, Mahasiswa!</h2>
@@ -498,7 +486,6 @@
                 @endif
             </div>
 
-            <!-- Info Cards -->
             <div class="info-cards">
                 <div class="card">
                     <h3>Nama</h3>
@@ -514,179 +501,201 @@
                 </div>
             </div>
 
-            <!-- Letter Table Section (for Mahasiswa only) -->
-            @if (Auth::user()->role == 'mahasiswa')
-                <div class="letter-section">
-                    <div class="card-header">
-                        <h5>Dashboard > Keterangan Surat</h5>
-                        <select id="filterDate">
-                            <option value="this-week">This week</option>
-                            <option value="this-month">This month</option>
-                            <option value="all">All time</option>
-                        </select>
-                    </div>
-                    <div class="card-body p-0">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th onclick="sortTable(0)">No <i class="fas fa-sort"></i></th>
-                                    <th onclick="sortTable(1)">No Surat <i class="fas fa-sort"></i></th>
-                                    <th onclick="sortTable(2)">NIM <i class="fas fa-sort"></i></th>
-                                    <th onclick="sortTable(3)">Jenis Surat <i class="fas fa-sort"></i></th>
-                                    <th onclick="sortTable(4)">Tanggal Pengajuan <i class="fas fa-sort"></i></th>
-                                    <th onclick="sortTable(5)">Tanggal Selesai <i class="fas fa-sort"></i></th>
-                                    <th>File Surat</th>
-                                    <th onclick="sortTable(7)">Status <i class="fas fa-sort"></i></th>
-                                </tr>
-                            </thead>
-                            <tbody id="letterTable">
-                                @foreach ($letters ?? [] as $letter)
-                                    <tr onclick="showLetterDetails({{ $letter->id }})">
-                                        <td>{{ $letter->id }}</td>
-                                        <td>{{ $letter->letter_number ?? 'Tidak tersedia' }}</td>
-                                        <td>{{ $letter->nim ?? 'Tidak tersedia' }}</td>
-                                        <td>{{ $letter->letter_type ?? 'Tidak tersedia' }}</td>
-                                        <td>{{ $letter->submission_date ?? 'Tidak tersedia' }}</td>
-                                        <td>{{ $letter->completion_date ?? '-' }}</td>
-                                        <td><a href="#" class="btn-view" onclick="event.stopPropagation(); showLetterDetails({{ $letter->id }})">Lihat</a></td>
-                                        <td>{{ $letter->status ?? 'Tidak tersedia' }} <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : 'status-ditolak') }}"></span></td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="letter-section">
+                <div class="card-header">
+                    <h5>Dashboard > Keterangan Surat</h5>
+                    <select id="filterDate">
+                        <option value="this-week">This week</option>
+                        <option value="this-month">This month</option>
+                        <option value="all">All time</option>
+                    </select>
                 </div>
-            @endif
-        </div>
-    </div>
-
-    <!-- Modal for Letter Details -->
-    @if (Auth::user()->role == 'mahasiswa')
-        <div class="modal fade" id="letterModal" tabindex="-1" aria-labelledby="letterModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="letterModalLabel">Detail Surat</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p><strong>No Surat:</strong> <span id="modalNoSurat"></span></p>
-                        <p><strong>NIM:</strong> <span id="modalNIM"></span></p>
-                        <p><strong>Jenis Surat:</strong> <span id="modalJenisSurat"></span></p>
-                        <p><strong>Tanggal Pengajuan:</strong> <span id="modalTanggalPengajuan"></span></p>
-                        <p><strong>Tanggal Selesai:</strong> <span id="modalTanggalSelesai"></span></p>
-                        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-                        <p><strong>File Surat:</strong> <a href="#" id="modalFileLink">Download File</a></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
+                <div class="card-body p-0">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)">No <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(1)">No Surat <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(2)">NIM <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(3)">Jenis Surat <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(4)">Tanggal Pengajuan <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(5)">Tanggal Selesai <i class="fas fa-sort"></i></th>
+                                <th>File Surat</th>
+                                <th onclick="sortTable(7)">Status <i class="fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="letterTable">
+                            @forelse ($letters ?? [] as $letter)
+                                <tr data-id="{{ $letter->id }}" onclick="showLetterDetails({{ $letter->id }})">
+                                    <td>{{ $letter->id }}</td>
+                                    <td>{{ $letter->letter_number ?? 'Tidak tersedia' }}</td>
+                                    <td>{{ $letter->nim ?? 'Tidak tersedia' }}</td>
+                                    <td>{{ $letter->letter_type ?? 'Tidak tersedia' }}</td>
+                                    <td>{{ $letter->submission_date ?? 'Tidak tersedia' }}</td>
+                                    <td>{{ $letter->completion_date ?? '-' }}</td>
+                                    <td>
+                                        <a href="#" class="btn-view" onclick="event.stopPropagation(); showLetterDetails({{ $letter->id }})">
+                                            Lihat
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{ $letter->status ?? 'Tidak tersedia' }}
+                                        <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : 'status-ditolak') }}"></span>
+                                        @if (Auth::user()->role == 'dosen')
+                                            <form class="status-form" method="POST" action="{{ route('letters.updateStatus', $letter->id) }}" style="display: inline;">
+                                                @csrf
+                                                @method('PATCH')
+                                                <select name="status" onchange="this.form.submit()">
+                                                    <option value="Proses" {{ $letter->status == 'Proses' ? 'selected' : '' }}>Proses</option>
+                                                    <option value="Ditolak" {{ $letter->status == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                                </select>
+                                            </form>
+                                        @elseif (Auth::user()->role == 'admin')
+                                            <form class="status-form" method="POST" action="{{ route('letters.updateStatus', $letter->id) }}" style="display: inline;">
+                                                @csrf
+                                                @method('PATCH')
+                                                <select name="status" onchange="this.form.submit()">
+                                                    <option value="Selesai" {{ $letter->status == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                                                </select>
+                                            </form>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8">Tidak ada surat yang diajukan.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    @endif
+    </div>
+
+    <div class="modal fade" id="letterModal" tabindex="-1" aria-labelledby="letterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="letterModalLabel">Detail Surat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if (isset($letter))
+                        <p><strong>No Surat:</strong> {{ $letter->letter_number ?? 'Tidak tersedia' }}</p>
+                        <p><strong>NIM:</strong> {{ $letter->nim ?? 'Tidak tersedia' }}</p>
+                        <p><strong>Jenis Surat:</strong> {{ $letter->letter_type ?? 'Tidak tersedia' }}</p>
+                        <p><strong>Tanggal Pengajuan:</strong> {{ $letter->submission_date ?? 'Tidak tersedia' }}</p>
+                        <p><strong>Tanggal Selesai:</strong> {{ $letter->completion_date ?? '-' }}</p>
+                        <p><strong>Status:</strong> {{ $letter->status ?? 'Tidak tersedia' }}</p>
+                        <p><strong>Keterangan Tambahan:</strong> {{ $letter->description ?? 'Tidak ada keterangan tambahan' }}</p>
+                        <p><strong>File Surat:</strong>
+                            @if ($letter->file_path)
+                                <a href="{{ asset('storage/' . $letter->file_path) }}" target="_blank">Download File</a>
+                            @else
+                                Tidak ada file
+                            @endif
+                        </p>
+                    @else
+                        <p>Tidak ada detail surat untuk ditampilkan.</p>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
     <script>
-        // Animate table rows on load (for Mahasiswa only)
-        @if (Auth::user()->role == 'mahasiswa')
-            document.addEventListener('DOMContentLoaded', () => {
-                const rows = document.querySelectorAll('#letterTable tr');
-                rows.forEach((row, index) => {
-                    gsap.to(row, {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.5,
-                        delay: index * 0.1,
-                        onComplete: () => row.classList.add('show')
-                    });
+        document.addEventListener('DOMContentLoaded', () => {
+            const rows = document.querySelectorAll('#letterTable tr');
+            rows.forEach((row, index) => {
+                gsap.to(row, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.5,
+                    delay: index * 0.1,
+                    onComplete: () => row.classList.add('show')
                 });
             });
 
-            // Filter by date (placeholder functionality)
-            document.getElementById('filterDate').addEventListener('change', function(e) {
-                const filter = e.target.value;
-                const rows = document.querySelectorAll('#letterTable tr');
-                rows.forEach(row => {
-                    gsap.to(row, { opacity: 1, y: 0, duration: 0.3 });
-                    row.style.display = ''; // Add logic for filtering in a real app
-                });
-            });
-
-            let sortDirection = {};
-
-            function sortTable(columnIndex) {
-                const tbody = document.getElementById('letterTable');
-                if (!tbody) {
-                    console.warn('tbody element with ID "letterTable" not found');
-                    return;
-                }
-
-                const rows = Array.from(tbody.rows);
-                const isAscending = sortDirection[columnIndex] !== 'asc';
-                sortDirection[columnIndex] = isAscending ? 'asc' : 'desc';
-
-                // Remove sorted classes from all headers
-                document.querySelectorAll('.table th').forEach(th => {
-                    th.classList.remove('sorted-asc', 'sorted-desc');
-                });
-
-                // Add sorted class to the current header
-                const table = tbody.closest('table');
-                const header = table.querySelector(`thead th:nth-child(${columnIndex + 1})`);
-                if (header) {
-                    header.classList.add(isAscending ? 'sorted-asc' : 'sorted-desc');
-                }
-
-                rows.sort((a, b) => {
-                    let aValue = a.cells[columnIndex].textContent.trim();
-                    let bValue = b.cells[columnIndex].textContent.trim();
-
-                    // Convert to number for "No" column (index 0)
-                    if (columnIndex === 0) {
-                        aValue = parseInt(aValue) || 0;
-                        bValue = parseInt(bValue) || 0;
-                        return isAscending ? aValue - bValue : bValue - aValue;
-                    }
-                    // Handle date columns (indices 4 and 5)
-                    else if (columnIndex === 4 || columnIndex === 5) {
-                        aValue = aValue === '-' ? 0 : new Date(aValue).getTime() || 0;
-                        bValue = bValue === '-' ? 0 : new Date(bValue).getTime() || 0;
-                        return isAscending ? aValue - bValue : bValue - aValue;
-                    }
-                    // Handle string columns (indices 1, 2, 3, 7)
-                    else {
-                        return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-                    }
-                });
-
-                // Clear tbody and re-append sorted rows with animation
-                while (tbody.firstChild) {
-                    tbody.removeChild(tbody.firstChild);
-                }
-                rows.forEach((row, index) => {
-                    tbody.appendChild(row);
-                    gsap.from(row, { opacity: 0, y: 20, duration: 0.3, delay: index * 0.05 });
-                });
-            }
-
-            function showLetterDetails(rowId) {
-                const rows = document.querySelectorAll('#letterTable tr');
-                const row = rows[rowId - 1];
-                document.getElementById('modalNoSurat').textContent = row.cells[1].textContent;
-                document.getElementById('modalNIM').textContent = row.cells[2].textContent;
-                document.getElementById('modalJenisSurat').textContent = row.cells[3].textContent;
-                document.getElementById('modalTanggalPengajuan').textContent = row.cells[4].textContent;
-                document.getElementById('modalTanggalSelesai').textContent = row.cells[5].textContent;
-                document.getElementById('modalStatus').textContent = row.cells[7].textContent.split(' ')[0];
-                document.getElementById('modalFileLink').href = '#'; // Replace with actual file URL
-
-                // Show the modal
+            // Tampilkan modal jika ada detail surat
+            @if (isset($letter))
                 const modal = new bootstrap.Modal(document.getElementById('letterModal'));
                 modal.show();
+            @endif
+        });
+
+        document.getElementById('filterDate').addEventListener('change', function(e) {
+            const filter = e.target.value;
+            const rows = document.querySelectorAll('#letterTable tr');
+            rows.forEach(row => {
+                gsap.to(row, { opacity: 1, y: 0, duration: 0.3 });
+                row.style.display = '';
+            });
+        });
+
+        let sortDirection = {};
+
+        function sortTable(columnIndex) {
+            const tbody = document.getElementById('letterTable');
+            if (!tbody) {
+                console.warn('tbody element with ID "letterTable" not found');
+                return;
             }
-        @endif
+
+            const rows = Array.from(tbody.rows);
+            const isAscending = sortDirection[columnIndex] !== 'asc';
+            sortDirection[columnIndex] = isAscending ? 'asc' : 'desc';
+
+            document.querySelectorAll('.table th').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+            });
+
+            const table = tbody.closest('table');
+            const header = table.querySelector(`thead th:nth-child(${columnIndex + 1})`);
+            if (header) {
+                header.classList.add(isAscending ? 'sorted-asc' : 'sorted-desc');
+            }
+
+            rows.sort((a, b) => {
+                let aValue = a.cells[columnIndex].textContent.trim();
+                let bValue = b.cells[columnIndex].textContent.trim();
+
+                if (columnIndex === 0) {
+                    aValue = parseInt(aValue) || 0;
+                    bValue = parseInt(bValue) || 0;
+                    return isAscending ? aValue - bValue : bValue - aValue;
+                } else if (columnIndex === 4 || columnIndex === 5) {
+                    aValue = aValue === '-' ? 0 : new Date(aValue).getTime() || 0;
+                    bValue = bValue === '-' ? 0 : new Date(bValue).getTime() || 0;
+                    return isAscending ? aValue - bValue : bValue - aValue;
+                } else {
+                    return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                }
+            });
+
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+            }
+            rows.forEach((row, index) => {
+                tbody.appendChild(row);
+                gsap.from(row, { opacity: 0, y: 20, duration: 0.3, delay: index * 0.05 });
+            });
+        }
+
+        function showLetterDetails(letterId) {
+            window.location.href = '/dashboard/' + letterId;
+        }
+
+        document.querySelectorAll('.btn-view').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const letterId = button.closest('tr').getAttribute('data-id');
+                showLetterDetails(letterId);
+            });
+        });
     </script>
-</body>
-</html>

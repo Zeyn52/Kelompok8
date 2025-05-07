@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    'file' => env('SESSION_DRIVER', 'database'),
 
     /*
     |--------------------------------------------------------------------------

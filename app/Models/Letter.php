@@ -14,10 +14,12 @@ class Letter extends Model
         'completion_date',
         'file_link',
         'status',
+        'file_path',
+        'description',
     ];
 
-    protected $casts = [
-        'submission_date' => 'date',
-        'completion_date' => 'date',
+    protected $dates = [
+        'submission_date',
+        'completion_date',
     ];
 }

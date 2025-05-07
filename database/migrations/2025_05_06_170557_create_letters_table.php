@@ -9,15 +9,15 @@ class CreateLettersTable extends Migration
     public function up()
     {
         Schema::create('letters', function (Blueprint $table) {
-            $table->id(); // No (auto-increment primary key)
-            $table->string('letter_number'); // No Surat
-            $table->string('nim'); // NIM
-            $table->string('letter_type'); // Jenis Surat
-            $table->date('submission_date'); // Tanggal Pengajuan
-            $table->date('completion_date')->nullable(); // Tanggal Selesai (nullable)
-            $table->string('file_link')->nullable(); // File Surat (nullable)
-            $table->string('status'); // Status
-            $table->timestamps(); // created_at dan updated_at
+            $table->id();
+            $table->string('letter_number')->nullable();
+            $table->string('nim', 20);
+            $table->string('letter_type');
+            $table->date('submission_date');
+            $table->text('description')->nullable();
+            $table->string('file_path')->nullable();
+            $table->enum('status', ['Proses', 'Selesai', 'Ditolak'])->default('Proses');
+            $table->timestamps();
         });
     }
 
