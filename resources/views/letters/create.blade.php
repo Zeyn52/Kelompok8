@@ -308,7 +308,7 @@
                 </div>
                 <div class="form-group">
                     <label for="nim">NIM</label>
-                    <input type="text" name="nim" id="nim" value="{{ old('nim', Auth::user()->nim ?? '') }}" required>
+                    <input type="text" name="nim" id="nim" value="{{ old('nim', Auth::user()->nim ?? '') }}" readonly>
                     @error('nim')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
@@ -327,7 +327,7 @@
                 </div>
                 <div class="form-group">
                     <label for="submission_date">Tanggal Pengajuan</label>
-                    <input type="date" name="submission_date" id="submission_date" value="{{ old('submission_date') }}" required>
+                    <input type="date" name="submission_date" id="submission_date" value="{{ old('submission_date', now()->format('Y-m-d')) }}" readonly>
                     @error('submission_date')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror

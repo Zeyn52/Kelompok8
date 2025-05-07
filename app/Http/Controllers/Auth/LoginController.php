@@ -1,26 +1,51 @@
 <?php
 
-  namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Auth;
 
-  use App\Http\Controllers\Controller;
-  use Illuminate\Foundation\Auth\AuthenticatesUsers;
-  use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
-  class LoginController extends Controller
-  {
-      use AuthenticatesUsers;
+class LoginController extends Controller
+{
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
 
-      protected $redirectTo = '/dashboard';
+    public function login(Request $request)
+    {
+        Log::info('Login request received:', $request->only('email'));
 
-      public function __construct()
-      {
-          $this->middleware('guest')->except('logout');
-      }
+        // Validasi input
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-      protected function sendFailedLoginResponse(Request $request)
-      {
-          return redirect()->back()
-              ->withInput($request->only('email', 'remember'))
-              ->with('login_error', trans('auth.failed'));
-      }
-  }
+        // Coba autentikasi
+        $credentials = $request->only('email', 'password');
+        if (Auth::attempt($credentials, $request->has('remember'))) {
+            Log::info('Login successful for user:', ['email' => $request->email]);
+            
+            // Regenerasi sesi untuk memastikan data lama tidak digunakan
+            $request->session()->regenerate();
+            return redirect()->intended(route('dashboard'))->with('success', 'Login berhasil!');
+        }
+
+        Log::warning('Login failed for user:', ['email' => $request->email]);
+        return back()->withErrors([
+            'email' => 'Email atau password salah.',
+        ])->onlyInput('email');
+    }
+
+    public function logout(Request $request)
+    {
+        Log::info('Logout request received for user:', ['user_id' => Auth::id()]);
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/')->with('success', 'Logout berhasil!');
+    }
+}
