@@ -237,12 +237,6 @@
                         <span>Pengajuan Surat</span>
                     </a>
                 </li>
-                <li>
-                    <a href="#">
-                        <i class="fas fa-graduation-cap"></i>
-                        <span>Nilai Akademik</span>
-                    </a>
-                </li>
             @elseif (Auth::user()->role == 'dosen')
                 <li>
                     <a href="#">

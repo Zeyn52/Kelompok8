@@ -29,7 +29,7 @@ Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('
 // Rute yang memerlukan autentikasi
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/{id}', [LetterController::class, 'show'])->name('dashboard.show');
+    Route::get('/dashboard/{id}', [DashboardController::class, 'show'])->name('dashboard.show');
     Route::get('/letters/create', [LetterController::class, 'create'])->name('letters.create');
     Route::post('/letters', [LetterController::class, 'store'])->name('letters.store');
     Route::patch('/letters/{id}/status', [LetterController::class, 'updateStatus'])->name('letters.updateStatus');

@@ -98,13 +98,13 @@ class LetterController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:Selesai,Proses,Ditolak',
+            'status' => 'required|in:Selesai,Proses,Ditolak,Diterima',
         ]);
 
         $letter = Letter::findOrFail($id);
 
-        if ($user->role === 'dosen' && !in_array($request->status, ['Proses', 'Ditolak'])) {
-            return redirect()->route('dashboard')->with('error', 'Dosen hanya dapat mengubah status menjadi Proses atau Ditolak.');
+        if ($user->role === 'dosen' && !in_array($request->status, ['Proses', 'Ditolak', 'Diterima'])) {
+            return redirect()->route('dashboard')->with('error', 'Dosen hanya dapat mengubah status menjadi Proses, Ditolak, atau Diterima.');
         }
 
         if ($user->role === 'admin' && $request->status !== 'Selesai') {

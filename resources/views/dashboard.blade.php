@@ -316,6 +316,10 @@
             background: #d00000;
         }
 
+        .letter-section .table .status-diterima {
+            background: #10b981; /* Warna hijau untuk status diterima */
+        }
+
         .modal-content {
             border-radius: 10px;
             border: none;
@@ -421,12 +425,6 @@
                         <span>Pengajuan Surat</span>
                     </a>
                 </li>
-                <li>
-                    <a href="#">
-                        <i class="fas fa-graduation-cap"></i>
-                        <span>Nilai Akademik</span>
-                    </a>
-                </li>
             @elseif (Auth::user()->role == 'dosen')
                 <li>
                     <a href="#">
@@ -473,7 +471,7 @@
             <div class="welcome-section">
                 @if (Auth::user()->role == 'mahasiswa')
                     <h2>Selamat Datang, Mahasiswa!</h2>
-                    <p>Ini adalah dashboard Anda. Gunakan menu di sisi kiri untuk mengakses pengajuan surat atau nilai akademik Anda.</p>
+                    <p>Ini adalah dashboard Anda. Gunakan menu di sisi kiri untuk mengakses pengajuan surat.</p>
                 @elseif (Auth::user()->role == 'dosen')
                     <h2>Selamat Datang, Dosen!</h2>
                     <p>Ini adalah dashboard Anda. Gunakan menu di sisi kiri untuk melihat jadwal mengajar atau daftar mahasiswa.</p>
@@ -526,7 +524,7 @@
                         </thead>
                         <tbody id="letterTable">
                             @forelse ($letters ?? [] as $letter)
-                                <tr data-id="{{ $letter->id }}" onclick="showLetterDetails({{ $letter->id }})">
+                                <tr data-id="{{ $letter->id }}" onclick="({{ $letter->id }})">
                                     <td>{{ $letter->id }}</td>
                                     <td>{{ $letter->letter_number ?? 'Tidak tersedia' }}</td>
                                     <td>{{ $letter->nim ?? 'Tidak tersedia' }}</td>
@@ -540,7 +538,7 @@
                                     </td>
                                     <td>
                                         {{ $letter->status ?? 'Tidak tersedia' }}
-                                        <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : 'status-ditolak') }}"></span>
+                                        <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
                                         @if (Auth::user()->role == 'dosen')
                                             <form class="status-form" method="POST" action="{{ route('letters.updateStatus', $letter->id) }}" style="display: inline;">
                                                 @csrf
@@ -548,6 +546,7 @@
                                                 <select name="status" onchange="this.form.submit()">
                                                     <option value="Proses" {{ $letter->status == 'Proses' ? 'selected' : '' }}>Proses</option>
                                                     <option value="Ditolak" {{ $letter->status == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                                    <option value="Diterima" {{ $letter->status == 'Diterima' ? 'selected' : '' }}>Diterima</option>
                                                 </select>
                                             </form>
                                         @elseif (Auth::user()->role == 'admin')
@@ -612,18 +611,14 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const rows = document.querySelectorAll('#letterTable tr');
-            rows.forEach((row, index) => {
-                gsap.to(row, {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.5,
-                    delay: index * 0.1,
-                    onComplete: () => row.classList.add('show')
-                });
+            rows.forEach(row => {
+                row.style.opacity = 1;
+                row.style.transform = 'translateY(0)';
+                row.classList.add('show');
             });
 
-            // Tampilkan modal jika ada detail surat
-            @if (isset($letter))
+            // Buka modal hanya jika rute adalah dashboard.show
+            @if (isset($letter) && Request::route()->getName() === 'dashboard.show')
                 const modal = new bootstrap.Modal(document.getElementById('letterModal'));
                 modal.show();
             @endif
@@ -688,6 +683,7 @@
         }
 
         function showLetterDetails(letterId) {
+            console.log('Letter ID:', letterId); // Debug ID
             window.location.href = '/dashboard/' + letterId;
         }
 
@@ -699,3 +695,5 @@
             });
         });
     </script>
+</body>
+</html>
