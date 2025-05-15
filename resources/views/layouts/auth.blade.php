@@ -377,13 +377,6 @@
 
                 <!-- Submit Button -->
                 <button type="submit">Login</button>
-
-                <!-- Social Login Links (Opsional) -->
-                <div class="social-container">
-                    <a href="#" class="social"><i class="lni lni-facebook-fill"></i></a>
-                    <a href="#" class="social"><i class="lni lni-google"></i></a>
-                    <a href="#" class="social"><i class="lni lni-linkedin-original"></i></a>
-                </div>
             </form>
         </div>
 
@@ -461,29 +454,22 @@
                     <span class="text-danger" style="color: red; font-size: 12px;">{{ $message }}</span>
                 @endif
 
-                <!-- NIM Field (Only for Mahasiswa) -->
-                <div id="nim-field" style="display: none;">
+                <!-- Identifier Field (Replaces NIM) -->
+                <div id="identifier-field" style="display: none;">
                     <input 
                         type="text" 
-                        name="nim" 
-                        placeholder="NIM" 
-                        value="{{ old('nim') }}" 
-                        id="nim-input"
+                        name="identifier" 
+                        id="identifier-input"
+                        placeholder=""
+                        value="{{ old('identifier') }}"
                     />
-                    @error('nim')
+                    @error('identifier')
                         <span class="text-danger" style="color: red; font-size: 12px;">{{ $message }}</span>
                     @endif
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit">Register</button>
-
-                <!-- Social Links (Opsional) -->
-                <div class="social-container">
-                    <a href="#" class="social"><i class="lni lni-facebook-fill"></i></a>
-                    <a href="#" class="social"><i class="lni lni-google"></i></a>
-                    <a href="#" class="social"><i class="lni lni-linkedin-original"></i></a>
-                </div>
             </form>
         </div>
 
@@ -514,12 +500,12 @@
             const loginButton = document.getElementById("login");
             const container = document.getElementById("container");
             const registerRoleSelect = document.getElementById("register-role");
-            const nimField = document.getElementById("nim-field");
-            const nimInput = document.getElementById("nim-input");
+            const identifierField = document.getElementById("identifier-field");
+            const identifierInput = document.getElementById("identifier-input");
 
             // Periksa apakah ada error pada form login atau register
             const hasLoginError = @json(session('login_error') || $errors->has('email') || $errors->has('password'));
-            const hasRegisterError = @json(session('register_error') || $errors->has('name') || $errors->has('email') || $errors->has('password') || $errors->has('role'));
+            const hasRegisterError = @json(session('register_error') || $errors->has('name') || $errors->has('email') || $errors->has('password') || $errors->has('role') || $errors->has('identifier'));
 
             // Jika ada error pada form register, tampilkan form register
             if (hasRegisterError) {
@@ -537,22 +523,32 @@
                 container.classList.remove("right-panel-active");
             });
 
-            // Tampilkan/menyembunyikan field NIM berdasarkan role
+            // Tampilkan/menyembunyikan field Identifier berdasarkan role
             if (registerRoleSelect) {
                 registerRoleSelect.addEventListener("change", function () {
                     if (this.value === "mahasiswa") {
-                        nimField.style.display = "block";
-                        nimInput.setAttribute("required", "required");
+                        identifierField.style.display = "block";
+                        identifierInput.placeholder = "NIM";
+                        identifierInput.setAttribute("required", "required");
+                    } else if (this.value === "dosen" || this.value === "admin") {
+                        identifierField.style.display = "block";
+                        identifierInput.placeholder = "NIP";
+                        identifierInput.setAttribute("required", "required");
                     } else {
-                        nimField.style.display = "none";
-                        nimInput.removeAttribute("required");
+                        identifierField.style.display = "none";
+                        identifierInput.removeAttribute("required");
                     }
                 });
 
                 // Inisialisasi status awal berdasarkan old('role')
                 if (registerRoleSelect.value === "mahasiswa") {
-                    nimField.style.display = "block";
-                    nimInput.setAttribute("required", "required");
+                    identifierField.style.display = "block";
+                    identifierInput.placeholder = "NIM";
+                    identifierInput.setAttribute("required", "required");
+                } else if (registerRoleSelect.value === "dosen" || registerRoleSelect.value === "admin") {
+                    identifierField.style.display = "block";
+                    identifierInput.placeholder = "NIP";
+                    identifierInput.setAttribute("required", "required");
                 }
             }
         });

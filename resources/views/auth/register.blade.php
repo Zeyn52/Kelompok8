@@ -166,7 +166,7 @@
                 <span class="text-danger">{{ $message }}</span>
             @enderror
 
-            <select name="role" id="role" required onchange="toggleNimField()">
+            <select name="role" id="role" required onchange="toggleFields()">
                 <option value="" disabled {{ old('role') ? '' : 'selected' }}>Pilih Role</option>
                 <option value="mahasiswa" {{ old('role') == 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
                 <option value="dosen" {{ old('role') == 'dosen' ? 'selected' : '' }}>Dosen</option>
@@ -176,9 +176,10 @@
                 <span class="text-danger">{{ $message }}</span>
             @enderror
 
-            <div id="nim-field" style="display: none;">
-                <input type="text" name="nim" id="nim" placeholder="NIM" value="{{ old('nim') }}">
-                @error('nim')
+            <div id="identifier-field" style="display: none;">
+                <label id="identifier-label" for="identifier"></label>
+                <input type="text" name="identifier" id="identifier" placeholder="" value="{{ old('identifier') }}">
+                @error('identifier')
                     <span class="text-danger">{{ $message }}</span>
                 @enderror
             </div>
@@ -192,21 +193,31 @@
     </div>
 
     <script>
-        function toggleNimField() {
+        function toggleFields() {
             const role = document.getElementById('role').value;
-            const nimField = document.getElementById('nim-field');
+            const identifierField = document.getElementById('identifier-field');
+            const identifierLabel = document.getElementById('identifier-label');
+            const identifierInput = document.getElementById('identifier');
+
             if (role === 'mahasiswa') {
-                nimField.style.display = 'block';
-                document.getElementById('nim').setAttribute('required', 'required');
+                identifierField.style.display = 'block';
+                identifierLabel.textContent = 'NIM';
+                identifierInput.placeholder = 'NIM';
+                identifierInput.setAttribute('required', 'required');
+            } else if (role === 'dosen' || role === 'admin') {
+                identifierField.style.display = 'block';
+                identifierLabel.textContent = 'NIP';
+                identifierInput.placeholder = 'NIP';
+                identifierInput.setAttribute('required', 'required');
             } else {
-                nimField.style.display = 'none';
-                document.getElementById('nim').removeAttribute('required');
+                identifierField.style.display = 'none';
+                identifierInput.removeAttribute('required');
             }
         }
 
         // Set initial state based on old input
         document.addEventListener('DOMContentLoaded', function() {
-            toggleNimField();
+            toggleFields();
         });
     </script>
 </body>

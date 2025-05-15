@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $letters = [];
 
         if ($user->role === 'mahasiswa') {
-            $letters = Letter::where('nim', $user->nim)->get();
+            $letters = Letter::where('identifier', $user->identifier)->get(); // Ubah nim menjadi identifier
         } elseif ($user->role === 'dosen') {
             $letters = Letter::whereRaw('LOWER(status) = ?', ['proses'])->get();
         } elseif ($user->role === 'admin') {
@@ -33,10 +33,14 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $letter = Letter::findOrFail($id);
-        $letters = [];
     
+        if ($user->role === 'mahasiswa' && $letter->identifier !== $user->identifier) { // Ubah nim menjadi identifier
+            abort(403, 'Unauthorized');
+        }
+    
+        $letters = [];
         if ($user->role === 'mahasiswa') {
-            $letters = Letter::where('nim', $user->nim)->get();
+            $letters = Letter::where('identifier', $user->identifier)->get(); // Ubah nim menjadi identifier
         } elseif ($user->role === 'dosen') {
             $letters = Letter::whereRaw('LOWER(status) = ?', ['proses'])->get();
         } elseif ($user->role === 'admin') {
@@ -44,5 +48,18 @@ class DashboardController extends Controller
         }
     
         return view('dashboard', compact('letter', 'letters'));
+    }
+
+    public function getLetterDetails($id)
+    {
+        $user = Auth::user();
+        $letter = Letter::findOrFail($id);
+
+        if ($user->role === 'mahasiswa' && $letter->identifier !== $user->identifier) { // Ubah nim menjadi identifier
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $fileUrl = $letter->file_path ? asset('storage/' . $letter->file_path) : null;
+        return response()->json(['success' => true, 'letter' => $letter, 'file_url' => $fileUrl]);
     }
 }

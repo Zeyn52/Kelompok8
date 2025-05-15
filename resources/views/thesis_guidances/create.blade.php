@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Pengajuan Surat - SIMAK</title>
+    <title>Bimbingan Skripsi - SIMAK</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -192,8 +192,56 @@
             background: #40916c;
         }
 
+        .table-section {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin: 30px;
+        }
+
+        .table-section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #2d6a4f;
+            margin-bottom: 20px;
+        }
+
+        .table-section .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-section .table th,
+        .table-section .table td {
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 13px;
+            color: #333333;
+        }
+
+        .table-section .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #2d6a4f;
+        }
+
+        .table-section .table td {
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .table-section .table tbody tr:hover {
+            background: #f1faee;
+            cursor: pointer;
+        }
+
         .text-danger {
             color: #d00000;
+            font-size: 12px;
+        }
+
+        .text-success {
+            color: #2d6a4f;
             font-size: 12px;
         }
 
@@ -211,7 +259,8 @@
                 font-size: 20px;
             }
 
-            .form-section {
+            .form-section,
+            .table-section {
                 margin: 15px;
                 padding: 15px;
             }
@@ -250,18 +299,6 @@
                         <span>Bimbingan Mahasiswa</span>
                     </a>
                 </li>
-                <li>
-                    <a href="#">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Jadwal Mengajar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <i class="fas fa-users"></i>
-                        <span>Daftar Mahasiswa</span>
-                    </a>
-                </li>
             @elseif (Auth::user()->role == 'admin')
                 <li>
                     <a href="#">
@@ -281,7 +318,7 @@
 
     <div class="main-content">
         <div class="header">
-            <h1>Pengajuan Surat</h1>
+            <h1>Bimbingan Skripsi</h1>
             <div class="user-info">
                 <span class="user-name">Selamat datang, {{ Auth::user()->name ?? 'Pengguna' }}</span>
                 <form method="POST" action="{{ route('logout') }}">
@@ -291,8 +328,9 @@
             </div>
         </div>
 
+        <!-- Form Pengajuan Bimbingan Skripsi -->
         <div class="form-section">
-            <h2>Form Pengajuan Surat</h2>
+            <h2>Form Pengajuan Bimbingan Skripsi</h2>
             @if (session('success'))
                 <div class="alert alert-success" role="alert">
                     {{ session('success') }}
@@ -303,57 +341,83 @@
                     {{ session('error') }}
                 </div>
             @endif
-            <form method="POST" action="{{ route('letters.store') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('thesis_guidances.store') }}">
                 @csrf
                 <div class="form-group">
-                    <label for="letter_number">No Surat (Opsional)</label>
-                    <input type="text" name="letter_number" id="letter_number" value="{{ old('letter_number') }}">
-                    @error('letter_number')
+                    <label for="student_identifier">NIM</label>
+                    <input type="text" name="student_identifier" id="student_identifier" value="{{ Auth::user()->identifier }}" readonly>
+                    @error('student_identifier')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="identifier">Identifier</label>
-                    <input type="text" name="identifier" id="identifier" value="{{ old('identifier', Auth::user()->identifier ?? '') }}" readonly>
-                    @error('identifier')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="letter_type">Jenis Surat</label>
-                    <select name="letter_type" id="letter_type" required>
-                        <option value="" disabled {{ old('letter_type') ? '' : 'selected' }}>Pilih Jenis Surat</option>
-                        <option value="Surat Keterangan Aktif Kuliah" {{ old('letter_type') == 'Surat Keterangan Aktif Kuliah' ? 'selected' : '' }}>Surat Keterangan Aktif Kuliah</option>
-                        <option value="Surat Izin Penelitian" {{ old('letter_type') == 'Surat Izin Penelitian' ? 'selected' : '' }}>Surat Izin Penelitian</option>
-                        <option value="Surat Keterangan Beasiswa" {{ old('letter_type') == 'Surat Keterangan Beasiswa' ? 'selected' : '' }}>Surat Keterangan Beasiswa</option>
+                    <label for="supervisor_identifier">Nama Dosen Pembimbing</label>
+                    <select name="supervisor_identifier" id="supervisor_identifier" required>
+                        <option value="" disabled selected>Pilih Dosen Pembimbing</option>
+                        @foreach ($supervisors as $supervisor)
+                            <option value="{{ $supervisor->identifier }}">{{ $supervisor->name }} ({{ $supervisor->identifier }})</option>
+                        @endforeach
                     </select>
-                    @error('letter_type')
+                    @error('supervisor_identifier')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="submission_date">Tanggal Pengajuan</label>
-                    <input type="date" name="submission_date" id="submission_date" value="{{ old('submission_date', now()->format('Y-m-d')) }}" readonly>
-                    @error('submission_date')
+                    <label for="topic">Topik Bimbingan (Opsional)</label>
+                    <input type="text" name="topic" id="topic" value="{{ old('topic') }}">
+                    @error('topic')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="description">Keterangan Tambahan (Opsional)</label>
-                    <textarea name="description" id="description" rows="3">{{ old('description') }}</textarea>
-                    @error('description')
+                    <label for="notes">Catatan Bimbingan (Opsional)</label>
+                    <textarea name="notes" id="notes" rows="3">{{ old('notes') }}</textarea>
+                    @error('notes')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="file_path">Upload File (Opsional, PDF maksimal 2MB)</label>
-                    <input type="file" name="file_path" id="file_path" accept=".pdf">
-                    @error('file_path')
+                    <label for="guidance_date">Tanggal Bimbingan</label>
+                    <input type="date" name="guidance_date" id="guidance_date" value="{{ old('guidance_date', now()->format('Y-m-d')) }}" required>
+                    @error('guidance_date')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
-                <button type="submit">Ajukan Surat</button>
+                <button type="submit">Ajukan Bimbingan</button>
             </form>
+        </div>
+
+        <!-- Tabel Riwayat Bimbingan Skripsi -->
+        <div class="table-section">
+            <h2>Riwayat Bimbingan Skripsi</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>NIM</th>
+                        <th>Nama Dosen</th>
+                        <th>Topik</th>
+                        <th>Catatan</th>
+                        <th>Tanggal Bimbingan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($guidances as $guidance)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $guidance->student_identifier }}</td>
+                            <td>{{ $guidance->supervisor->name ?? 'Tidak tersedia' }}</td>
+                            <td>{{ $guidance->topic ?? 'Tidak tersedia' }}</td>
+                            <td>{{ $guidance->notes ?? 'Tidak ada catatan' }}</td>
+                            <td>{{ \Carbon\Carbon::parse($guidance->guidance_date)->format('Y-m-d') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6">Belum ada riwayat bimbingan skripsi.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 

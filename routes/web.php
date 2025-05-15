@@ -6,7 +6,10 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LetterController;
+use App\Http\Controllers\ThesisGuidanceController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -33,5 +36,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/letters/create', [LetterController::class, 'create'])->name('letters.create');
     Route::post('/letters', [LetterController::class, 'store'])->name('letters.store');
     Route::patch('/letters/{id}/status', [LetterController::class, 'updateStatus'])->name('letters.updateStatus');
+    Route::get('/thesis-guidances/create', [ThesisGuidanceController::class, 'create'])->name('thesis_guidances.create');
+    Route::post('/thesis-guidances', [ThesisGuidanceController::class, 'store'])->name('thesis_guidances.store');
+    Route::get('/thesis-guidances/supervisor', [ThesisGuidanceController::class, 'supervisor'])->name('thesis_guidances.supervisor');
+    Route::get('/admin/users', [AdminController::class, 'manageUsers'])->name('admin.users');
+    Route::get('/admin/settings', [AdminController::class, 'systemSettings'])->name('admin.settings');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::get('/dashboard/get-letter/{id}', [DashboardController::class, 'getLetterDetails'])->name('dashboard.getLetter');
 });

@@ -27,7 +27,10 @@ class RegisterController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
             'role' => 'required|in:mahasiswa,dosen,admin',
-            'nim' => 'required_if:role,mahasiswa|nullable|string|max:20',
+            'identifier' => 'required|string|max:20|unique:users,identifier', // Validasi identifier
+        ], [
+            'identifier.required' => 'NIM/NIP wajib diisi.',
+            'identifier.unique' => 'NIM/NIP sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {
@@ -42,7 +45,7 @@ class RegisterController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
-                'nim' => $request->role === 'mahasiswa' ? $request->nim : null,
+                'identifier' => $request->identifier, // Simpan NIM/NIP sebagai identifier
             ]);
 
             Log::info('User created successfully:', $user->toArray());

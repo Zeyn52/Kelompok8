@@ -14,7 +14,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'nim',
+        'identifier',
         'role',
     ];
 
@@ -29,6 +29,18 @@ class User extends Authenticatable
 
     public function letters()
     {
-        return $this->hasMany(Letter::class);
+        return $this->hasMany(Letter::class, 'identifier', 'identifier'); // Sesuaikan relasi dengan identifier
+    }
+
+    // Getter untuk nim (untuk backward compatibility dengan data lama)
+    public function getNimAttribute()
+    {
+        return $this->role === 'mahasiswa' ? $this->identifier : null;
+    }
+
+    // Getter untuk nip (untuk dosen/admin)
+    public function getNipAttribute()
+    {
+        return in_array($this->role, ['dosen', 'admin']) ? $this->identifier : null;
     }
 }

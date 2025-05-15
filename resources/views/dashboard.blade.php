@@ -317,7 +317,7 @@
         }
 
         .letter-section .table .status-diterima {
-            background: #10b981; /* Warna hijau untuk status diterima */
+            background: #10b981;
         }
 
         .modal-content {
@@ -407,7 +407,7 @@
     </style>
 </head>
 <body>
-    <div class="sidebar">
+        <div class="sidebar">
         <div class="logo">
             <h2>SIMAK</h2>
         </div>
@@ -425,28 +425,28 @@
                         <span>Pengajuan Surat</span>
                     </a>
                 </li>
-            @elseif (Auth::user()->role == 'dosen')
                 <li>
-                    <a href="#">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Jadwal Mengajar</span>
+                    <a href="{{ route('thesis_guidances.create') }}">
+                        <i class="fas fa-book"></i>
+                        <span>Bimbingan Skripsi</span>
                     </a>
                 </li>
+            @elseif (Auth::user()->role == 'dosen')
                 <li>
-                    <a href="#">
-                        <i class="fas fa-users"></i>
-                        <span>Daftar Mahasiswa</span>
+                    <a href="{{ route('thesis_guidances.supervisor') }}">
+                        <i class="fas fa-book"></i>
+                        <span>Bimbingan Mahasiswa</span>
                     </a>
                 </li>
             @elseif (Auth::user()->role == 'admin')
                 <li>
-                    <a href="#">
+                    <a href="{{ route('admin.users') }}">
                         <i class="fas fa-users-cog"></i>
                         <span>Kelola Pengguna</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="{{ route('admin.settings') }}">
                         <i class="fas fa-cogs"></i>
                         <span>Pengaturan Sistem</span>
                     </a>
@@ -497,6 +497,17 @@
                     <h3>Role</h3>
                     <p>{{ ucfirst(Auth::user()->role ?? 'Tidak tersedia') }}</p>
                 </div>
+                @if (Auth::user()->role == 'mahasiswa')
+                    <div class="card">
+                        <h3>Identifier (NIM)</h3>
+                        <p>{{ Auth::user()->identifier ?? 'Tidak tersedia' }}</p>
+                    </div>
+                @elseif (Auth::user()->role == 'dosen' || Auth::user()->role == 'admin')
+                    <div class="card">
+                        <h3>Identifier (NIP)</h3>
+                        <p>{{ Auth::user()->identifier ?? 'Tidak tersedia' }}</p>
+                    </div>
+                @endif
             </div>
 
             <div class="letter-section">
@@ -514,7 +525,7 @@
                             <tr>
                                 <th onclick="sortTable(0)">No <i class="fas fa-sort"></i></th>
                                 <th onclick="sortTable(1)">No Surat <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable(2)">NIM <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(2)">Identifier <i class="fas fa-sort"></i></th>
                                 <th onclick="sortTable(3)">Jenis Surat <i class="fas fa-sort"></i></th>
                                 <th onclick="sortTable(4)">Tanggal Pengajuan <i class="fas fa-sort"></i></th>
                                 <th onclick="sortTable(5)">Tanggal Selesai <i class="fas fa-sort"></i></th>
@@ -524,26 +535,28 @@
                         </thead>
                         <tbody id="letterTable">
                             @forelse ($letters ?? [] as $letter)
-                                <tr data-id="{{ $letter->id }}" onclick="({{ $letter->id }})">
-                                    <td>{{ $letter->id }}</td>
-                                    <td>{{ $letter->letter_number ?? 'Tidak tersedia' }}</td>
-                                    <td>{{ $letter->nim ?? 'Tidak tersedia' }}</td>
-                                    <td>{{ $letter->letter_type ?? 'Tidak tersedia' }}</td>
-                                    <td>{{ $letter->submission_date ?? 'Tidak tersedia' }}</td>
-                                    <td>{{ $letter->completion_date ?? '-' }}</td>
+                                <tr data-id="{{ $letter->id }}">
+                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->id }}</td>
+                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->letter_number ?? 'Tidak tersedia' }}</td>
+                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->identifier ?? 'Tidak tersedia' }}</td>
+                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->letter_type ?? 'Tidak tersedia' }}</td>
+                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->submission_date ? \Carbon\Carbon::parse($letter->submission_date)->format('d-m-Y') : 'Tidak tersedia' }}</td>
+                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->completion_date ? \Carbon\Carbon::parse($letter->completion_date)->format('d-m-Y') : '-' }}</td>
                                     <td>
                                         <a href="#" class="btn-view" onclick="event.stopPropagation(); showLetterDetails({{ $letter->id }})">
                                             Lihat
                                         </a>
                                     </td>
-                                    <td>
-                                        {{ $letter->status ?? 'Tidak tersedia' }}
-                                        <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
+                                    <td class="status-column">
+                                        <span class="status-text">
+                                            {{ $letter->status ?? 'Tidak tersedia' }}
+                                            <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
+                                        </span>
                                         @if (Auth::user()->role == 'dosen')
                                             <form class="status-form" method="POST" action="{{ route('letters.updateStatus', $letter->id) }}" style="display: inline;">
                                                 @csrf
                                                 @method('PATCH')
-                                                <select name="status" onchange="this.form.submit()">
+                                                <select name="status" onchange="this.form.submit()" onclick="event.stopPropagation();">
                                                     <option value="Proses" {{ $letter->status == 'Proses' ? 'selected' : '' }}>Proses</option>
                                                     <option value="Ditolak" {{ $letter->status == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                                                     <option value="Diterima" {{ $letter->status == 'Diterima' ? 'selected' : '' }}>Diterima</option>
@@ -553,7 +566,7 @@
                                             <form class="status-form" method="POST" action="{{ route('letters.updateStatus', $letter->id) }}" style="display: inline;">
                                                 @csrf
                                                 @method('PATCH')
-                                                <select name="status" onchange="this.form.submit()">
+                                                <select name="status" onchange="this.form.submit()" onclick="event.stopPropagation();">
                                                     <option value="Selesai" {{ $letter->status == 'Selesai' ? 'selected' : '' }}>Selesai</option>
                                                 </select>
                                             </form>
@@ -579,13 +592,13 @@
                     <h5 class="modal-title" id="letterModalLabel">Detail Surat</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" id="modalBody">
                     @if (isset($letter))
                         <p><strong>No Surat:</strong> {{ $letter->letter_number ?? 'Tidak tersedia' }}</p>
-                        <p><strong>NIM:</strong> {{ $letter->nim ?? 'Tidak tersedia' }}</p>
+                        <p><strong>Identifier:</strong> {{ $letter->identifier ?? 'Tidak tersedia' }}</p>
                         <p><strong>Jenis Surat:</strong> {{ $letter->letter_type ?? 'Tidak tersedia' }}</p>
-                        <p><strong>Tanggal Pengajuan:</strong> {{ $letter->submission_date ?? 'Tidak tersedia' }}</p>
-                        <p><strong>Tanggal Selesai:</strong> {{ $letter->completion_date ?? '-' }}</p>
+                        <p><strong>Tanggal Pengajuan:</strong> {{ $letter->submission_date ? \Carbon\Carbon::parse($letter->submission_date)->format('d-m-Y') : 'Tidak tersedia' }}</p>
+                        <p><strong>Tanggal Selesai:</strong> {{ $letter->completion_date ? \Carbon\Carbon::parse($letter->completion_date)->format('d-m-Y') : '-' }}</p>
                         <p><strong>Status:</strong> {{ $letter->status ?? 'Tidak tersedia' }}</p>
                         <p><strong>Keterangan Tambahan:</strong> {{ $letter->description ?? 'Tidak ada keterangan tambahan' }}</p>
                         <p><strong>File Surat:</strong>
@@ -609,6 +622,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
     <script>
+        // Inisialisasi modal sekali saja
+        const modalElement = document.getElementById('letterModal');
+        const letterModal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             const rows = document.querySelectorAll('#letterTable tr');
             rows.forEach(row => {
@@ -617,11 +637,19 @@
                 row.classList.add('show');
             });
 
-            // Buka modal hanya jika rute adalah dashboard.show
-            @if (isset($letter) && Request::route()->getName() === 'dashboard.show')
-                const modal = new bootstrap.Modal(document.getElementById('letterModal'));
-                modal.show();
-            @endif
+            // Bersihkan backdrop saat halaman dimuat
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = 'auto';
+        });
+
+        // Bersihkan modal saat ditutup
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = '<p>Tidak ada detail surat untuk ditampilkan.</p>';
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = 'auto';
         });
 
         document.getElementById('filterDate').addEventListener('change', function(e) {
@@ -683,8 +711,34 @@
         }
 
         function showLetterDetails(letterId) {
-            console.log('Letter ID:', letterId); // Debug ID
-            window.location.href = '/dashboard/' + letterId;
+            console.log('Letter ID:', letterId);
+            fetch(`/dashboard/get-letter/${letterId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const modalBody = document.getElementById('modalBody');
+                        // Format tanggal menggunakan JavaScript
+                        const submissionDate = data.letter.submission_date ? new Date(data.letter.submission_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Tidak tersedia';
+                        const completionDate = data.letter.completion_date ? new Date(data.letter.completion_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
+                        
+                        modalBody.innerHTML = `
+                            <p><strong>No Surat:</strong> ${data.letter.letter_number ?? 'Tidak tersedia'}</p>
+                            <p><strong>Identifier:</strong> ${data.letter.identifier ?? 'Tidak tersedia'}</p>
+                            <p><strong>Jenis Surat:</strong> ${data.letter.letter_type ?? 'Tidak tersedia'}</p>
+                            <p><strong>Tanggal Pengajuan:</strong> ${submissionDate}</p>
+                            <p><strong>Tanggal Selesai:</strong> ${completionDate}</p>
+                            <p><strong>Status:</strong> ${data.letter.status ?? 'Tidak tersedia'}</p>
+                            <p><strong>Keterangan Tambahan:</strong> ${data.letter.description ?? 'Tidak ada keterangan tambahan'}</p>
+                            <p><strong>File Surat:</strong>
+                                ${data.letter.file_path ? `<a href="${data.file_url}" target="_blank">Download File</a>` : 'Tidak ada file'}
+                            </p>
+                        `;
+                        letterModal.show();
+                    } else {
+                        alert('Gagal memuat detail surat.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
 
         document.querySelectorAll('.btn-view').forEach(button => {
@@ -692,6 +746,22 @@
                 e.stopPropagation();
                 const letterId = button.closest('tr').getAttribute('data-id');
                 showLetterDetails(letterId);
+            });
+        });
+
+        // Debugging form submission untuk status
+        document.querySelectorAll('.status-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const status = form.querySelector('select[name="status"]').value;
+                console.log('Form dikirim dengan status:', status, 'untuk surat ID:', form.closest('tr').getAttribute('data-id'));
+                alert('Mengirim status: ' + status + ' untuk surat ID: ' + form.closest('tr').getAttribute('data-id'));
+            });
+        });
+
+        document.querySelectorAll('.status-form select').forEach(select => {
+            select.addEventListener('change', function() {
+                console.log('Mengubah status menjadi:', this.value);
+                this.form.submit();
             });
         });
     </script>

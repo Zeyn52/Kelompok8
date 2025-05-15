@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Pengajuan Surat - SIMAK</title>
+    <title>Kelola Pengguna - SIMAK</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -129,72 +129,49 @@
             background: #40916c;
         }
 
-        .form-section {
+        .content-section {
+            padding: 30px;
+        }
+
+        .content-section .card {
             background: #ffffff;
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin: 30px;
         }
 
-        .form-section h2 {
+        .content-section .card h2 {
             font-size: 22px;
             font-weight: 600;
             color: #2d6a4f;
             margin-bottom: 20px;
         }
 
-        .form-section .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-section label {
-            font-size: 14px;
-            font-weight: 500;
-            color: #333333;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form-section input,
-        .form-section select,
-        .form-section textarea {
+        .content-section .table {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            font-size: 14px;
+            border-collapse: collapse;
+        }
+
+        .content-section .table th,
+        .content-section .table td {
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 13px;
             color: #333333;
-            transition: all 0.3s ease;
         }
 
-        .form-section input:focus,
-        .form-section select:focus,
-        .form-section textarea:focus {
-            border-color: #2d6a4f;
-            outline: none;
-            box-shadow: 0 0 5px rgba(45, 106, 79, 0.2);
+        .content-section .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #2d6a4f;
         }
 
-        .form-section button {
-            background: #2d6a4f;
-            color: #ffffff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .content-section .table td {
+            border-top: 1px solid #e5e7eb;
         }
 
-        .form-section button:hover {
-            background: #40916c;
-        }
-
-        .text-danger {
-            color: #d00000;
-            font-size: 12px;
+        .content-section .table tbody tr:hover {
+            background: #f1faee;
         }
 
         @media (max-width: 768px) {
@@ -211,8 +188,7 @@
                 font-size: 20px;
             }
 
-            .form-section {
-                margin: 15px;
+            .content-section {
                 padding: 15px;
             }
         }
@@ -250,27 +226,15 @@
                         <span>Bimbingan Mahasiswa</span>
                     </a>
                 </li>
-                <li>
-                    <a href="#">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Jadwal Mengajar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <i class="fas fa-users"></i>
-                        <span>Daftar Mahasiswa</span>
-                    </a>
-                </li>
             @elseif (Auth::user()->role == 'admin')
                 <li>
-                    <a href="#">
+                    <a href="{{ route('admin.users') }}">
                         <i class="fas fa-users-cog"></i>
                         <span>Kelola Pengguna</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="{{ route('admin.settings') }}">
                         <i class="fas fa-cogs"></i>
                         <span>Pengaturan Sistem</span>
                     </a>
@@ -281,7 +245,7 @@
 
     <div class="main-content">
         <div class="header">
-            <h1>Pengajuan Surat</h1>
+            <h1>Kelola Pengguna</h1>
             <div class="user-info">
                 <span class="user-name">Selamat datang, {{ Auth::user()->name ?? 'Pengguna' }}</span>
                 <form method="POST" action="{{ route('logout') }}">
@@ -291,69 +255,36 @@
             </div>
         </div>
 
-        <div class="form-section">
-            <h2>Form Pengajuan Surat</h2>
-            @if (session('success'))
-                <div class="alert alert-success" role="alert">
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger" role="alert">
-                    {{ session('error') }}
-                </div>
-            @endif
-            <form method="POST" action="{{ route('letters.store') }}" enctype="multipart/form-data">
-                @csrf
-                <div class="form-group">
-                    <label for="letter_number">No Surat (Opsional)</label>
-                    <input type="text" name="letter_number" id="letter_number" value="{{ old('letter_number') }}">
-                    @error('letter_number')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="identifier">Identifier</label>
-                    <input type="text" name="identifier" id="identifier" value="{{ old('identifier', Auth::user()->identifier ?? '') }}" readonly>
-                    @error('identifier')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="letter_type">Jenis Surat</label>
-                    <select name="letter_type" id="letter_type" required>
-                        <option value="" disabled {{ old('letter_type') ? '' : 'selected' }}>Pilih Jenis Surat</option>
-                        <option value="Surat Keterangan Aktif Kuliah" {{ old('letter_type') == 'Surat Keterangan Aktif Kuliah' ? 'selected' : '' }}>Surat Keterangan Aktif Kuliah</option>
-                        <option value="Surat Izin Penelitian" {{ old('letter_type') == 'Surat Izin Penelitian' ? 'selected' : '' }}>Surat Izin Penelitian</option>
-                        <option value="Surat Keterangan Beasiswa" {{ old('letter_type') == 'Surat Keterangan Beasiswa' ? 'selected' : '' }}>Surat Keterangan Beasiswa</option>
-                    </select>
-                    @error('letter_type')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="submission_date">Tanggal Pengajuan</label>
-                    <input type="date" name="submission_date" id="submission_date" value="{{ old('submission_date', now()->format('Y-m-d')) }}" readonly>
-                    @error('submission_date')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="description">Keterangan Tambahan (Opsional)</label>
-                    <textarea name="description" id="description" rows="3">{{ old('description') }}</textarea>
-                    @error('description')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="file_path">Upload File (Opsional, PDF maksimal 2MB)</label>
-                    <input type="file" name="file_path" id="file_path" accept=".pdf">
-                    @error('file_path')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-                <button type="submit">Ajukan Surat</button>
-            </form>
+        <div class="content-section">
+            <div class="card">
+                <h2>Daftar Pengguna</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Identifier</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($users as $index => $user)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $user->name ?? 'Tidak tersedia' }}</td>
+                                <td>{{ $user->email ?? 'Tidak tersedia' }}</td>
+                                <td>{{ ucfirst($user->role ?? 'Tidak tersedia') }}</td>
+                                <td>{{ $user->identifier ?? 'Tidak tersedia' }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5">Tidak ada pengguna yang ditemukan.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

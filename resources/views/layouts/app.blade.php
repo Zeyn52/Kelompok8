@@ -52,11 +52,41 @@
             font-size: 14px;
             margin-bottom: 15px;
         }
+        .notification {
+            background: #d00000;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        .notification.success {
+            background: #2d6a4f;
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
         <h2>SIMAK - Dashboard</h2>
+        @auth
+            @if (Auth::user()->role === 'mahasiswa')
+                @php
+                    $completedLetters = \App\Models\Letter::where('identifier', Auth::user()->identifier)
+                        ->where('status', 'Selesai')
+                        ->count();
+                    $recentCompletedLetters = \App\Models\Letter::where('identifier', Auth::user()->identifier)
+                        ->where('status', 'Selesai')
+                        ->where('completion_date', '>=', now()->subDays(7))
+                        ->count();
+                @endphp
+                <div class="notification {{ $recentCompletedLetters > 0 ? 'success' : '' }}">
+                    {{ $completedLetters }} Pengajuan Selesai
+                    @if ($recentCompletedLetters > 0)
+                        <span>({{ $recentCompletedLetters }} Baru)</span>
+                    @endif
+                </div>
+            @endif
+        @endauth
         <form action="{{ route('logout') }}" method="POST">
             @csrf
             <button type="submit">Logout</button>
