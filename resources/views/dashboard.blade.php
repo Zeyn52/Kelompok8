@@ -305,19 +305,19 @@
         }
 
         .letter-section .table .status-selesai {
-            background: #2d6a4f;
+            background: #808080; /* Abu-abu untuk Selesai */
         }
 
         .letter-section .table .status-proses {
-            background: #f59e0b;
+            background: #f59e0b; /* Kuning untuk Proses */
         }
 
         .letter-section .table .status-ditolak {
-            background: #d00000;
+            background: #d00000; /* Merah untuk Ditolak */
         }
 
         .letter-section .table .status-diterima {
-            background: #10b981;
+            background: #10b981; /* Hijau untuk Diterima */
         }
 
         .modal-content {
@@ -407,7 +407,7 @@
     </style>
 </head>
 <body>
-        <div class="sidebar">
+    <div class="sidebar">
         <div class="logo">
             <h2>SIMAK</h2>
         </div>
@@ -534,25 +534,30 @@
                             </tr>
                         </thead>
                         <tbody id="letterTable">
-                            @forelse ($letters ?? [] as $letter)
-                                <tr data-id="{{ $letter->id }}">
-                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->id }}</td>
-                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->letter_number ?? 'Tidak tersedia' }}</td>
-                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->identifier ?? 'Tidak tersedia' }}</td>
-                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->letter_type ?? 'Tidak tersedia' }}</td>
-                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->submission_date ? \Carbon\Carbon::parse($letter->submission_date)->format('d-m-Y') : 'Tidak tersedia' }}</td>
-                                    <td onclick="showLetterDetails({{ $letter->id }})">{{ $letter->completion_date ? \Carbon\Carbon::parse($letter->completion_date)->format('d-m-Y') : '-' }}</td>
+                            @forelse ($letters ?? [] as $index => $letter)
+                                <tr data-id="{{ $letter->id }}" class="show">
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $letter->letter_number ?? 'Tidak tersedia' }}</td>
+                                    <td>{{ $letter->identifier ?? 'Tidak tersedia' }}</td>
+                                    <td>{{ $letter->letter_type ?? 'Tidak tersedia' }}</td>
+                                    <td>{{ $letter->submission_date ? \Carbon\Carbon::parse($letter->submission_date)->format('d-m-Y') : 'Tidak tersedia' }}</td>
+                                    <td class="completion-date">{{ $letter->completion_date ? \Carbon\Carbon::parse($letter->completion_date)->format('d-m-Y') : '-' }}</td>
                                     <td>
                                         <a href="#" class="btn-view" onclick="event.stopPropagation(); showLetterDetails({{ $letter->id }})">
                                             Lihat
                                         </a>
                                     </td>
                                     <td class="status-column">
-                                        <span class="status-text">
-                                            {{ $letter->status ?? 'Tidak tersedia' }}
-                                            <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
-                                        </span>
-                                        @if (Auth::user()->role == 'dosen')
+                                        @if (Auth::user()->role == 'mahasiswa')
+                                            <span class="status-text">
+                                                {{ $letter->status ?? 'Tidak tersedia' }}
+                                                <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
+                                            </span>
+                                        @elseif (Auth::user()->role == 'dosen')
+                                            <span class="status-text">
+                                                {{ $letter->status ?? 'Tidak tersedia' }}
+                                                <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
+                                            </span>
                                             <form class="status-form" method="POST" action="{{ route('letters.updateStatus', $letter->id) }}" style="display: inline;">
                                                 @csrf
                                                 @method('PATCH')
@@ -563,13 +568,25 @@
                                                 </select>
                                             </form>
                                         @elseif (Auth::user()->role == 'admin')
-                                            <form class="status-form" method="POST" action="{{ route('letters.updateStatus', $letter->id) }}" style="display: inline;">
-                                                @csrf
-                                                @method('PATCH')
-                                                <select name="status" onchange="this.form.submit()" onclick="event.stopPropagation();">
-                                                    <option value="Selesai" {{ $letter->status == 'Selesai' ? 'selected' : '' }}>Selesai</option>
-                                                </select>
-                                            </form>
+                                            @if ($letter->status == 'Diterima')
+                                                <span class="status-text" id="status-text-{{ $letter->id }}">
+                                                    Diterima
+                                                    <span class="status-dot status-diterima"></span>
+                                                </span>
+                                                <form class="status-form" id="status-form-{{ $letter->id }}" data-letter-id="{{ $letter->id }}" style="display: inline;">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <select name="status" onchange="updateStatus({{ $letter->id }})" onclick="event.stopPropagation();">
+                                                        <option value="Diterima" selected disabled hidden>Diterima</option>
+                                                        <option value="Selesai">Selesai</option>
+                                                    </select>
+                                                </form>
+                                            @else
+                                                <span class="status-text" id="status-text-{{ $letter->id }}">
+                                                    {{ $letter->status ?? 'Tidak tersedia' }}
+                                                    <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
+                                                </span>
+                                            @endif
                                         @endif
                                     </td>
                                 </tr>
@@ -711,13 +728,22 @@
         }
 
         function showLetterDetails(letterId) {
-            console.log('Letter ID:', letterId);
-            fetch(`/dashboard/get-letter/${letterId}`)
-                .then(response => response.json())
+            console.log('Fetching letter details for ID:', letterId);
+            fetch(`/dashboard/get-letter/${letterId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Response data:', data);
                     if (data.success) {
                         const modalBody = document.getElementById('modalBody');
-                        // Format tanggal menggunakan JavaScript
                         const submissionDate = data.letter.submission_date ? new Date(data.letter.submission_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Tidak tersedia';
                         const completionDate = data.letter.completion_date ? new Date(data.letter.completion_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
                         
@@ -735,10 +761,80 @@
                         `;
                         letterModal.show();
                     } else {
-                        alert('Gagal memuat detail surat.');
+                        alert('Gagal memuat detail surat: ' + (data.message || 'Unknown error'));
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error fetching letter details:', error);
+                    alert('Terjadi kesalahan saat memuat detail surat.');
+                });
+        }
+
+        function updateStatus(letterId) {
+            const form = document.getElementById(`status-form-${letterId}`);
+            const select = form.querySelector('select[name="status"]');
+            const newStatus = select.value;
+            const statusText = document.getElementById(`status-text-${letterId}`);
+            const statusColumn = form.parentElement;
+            const completionDateCell = statusColumn.parentElement.querySelector('.completion-date');
+
+            console.log('Updating status for letter ID:', letterId);
+            console.log('New status:', newStatus);
+            console.log('CSRF Token:', document.querySelector('meta[name="csrf-token"]').content);
+            console.log('Request URL:', `{{ route('letters.updateStatus', ['id' => ':id']) }}`.replace(':id', letterId));
+            console.log('Request payload:', JSON.stringify({
+                _method: 'PATCH',
+                status: newStatus
+            }));
+
+            fetch(`{{ route('letters.updateStatus', ['id' => ':id']) }}`.replace(':id', letterId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    _method: 'PATCH',
+                    status: newStatus
+                })
+            })
+            .then(response => {
+                console.log('Update status response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Update status response data:', data);
+                if (data.success) {
+                    // Update UI
+                    statusText.innerHTML = ''; // Clear existing content
+                    statusText.textContent = data.status;
+                    const dot = document.createElement('span');
+                    dot.className = `status-dot status-${data.status.toLowerCase()}`;
+                    statusText.appendChild(dot);
+                    form.style.display = 'none'; // Hide form after update
+                    // Update completion date
+                    if (data.completion_date) {
+                        completionDateCell.textContent = data.completion_date;
+                    } else {
+                        completionDateCell.textContent = '-';
+                    }
+                    alert(data.message);
+                } else {
+                    alert('Gagal memperbarui status: ' + data.message);
+                    select.value = 'Diterima'; // Reset select to original value
+                }
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                alert('Terjadi kesalahan saat memperbarui status: ' + error.message);
+                select.value = 'Diterima'; // Reset select to original value
+            });
+
+            return false; // Prevent default form submission
         }
 
         document.querySelectorAll('.btn-view').forEach(button => {
@@ -749,21 +845,12 @@
             });
         });
 
-        // Debugging form submission untuk status
         document.querySelectorAll('.status-form').forEach(form => {
             form.addEventListener('submit', function(e) {
-                const status = form.querySelector('select[name="status"]').value;
-                console.log('Form dikirim dengan status:', status, 'untuk surat ID:', form.closest('tr').getAttribute('data-id'));
-                alert('Mengirim status: ' + status + ' untuk surat ID: ' + form.closest('tr').getAttribute('data-id'));
-            });
-        });
-
-        document.querySelectorAll('.status-form select').forEach(select => {
-            select.addEventListener('change', function() {
-                console.log('Mengubah status menjadi:', this.value);
-                this.form.submit();
+                e.preventDefault(); // Prevent default form submission
             });
         });
     </script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </body>
 </html>

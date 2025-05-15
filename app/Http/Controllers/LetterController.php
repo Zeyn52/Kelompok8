@@ -96,7 +96,10 @@ class LetterController extends Controller
         $user = Auth::user();
 
         if (!in_array($user->role, ['dosen', 'admin'])) {
-            return redirect()->route('dashboard')->with('error', 'Hanya dosen atau admin yang dapat mengubah status surat.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya dosen atau admin yang dapat mengubah status surat.'
+            ], 403);
         }
 
         $request->validate([
@@ -105,23 +108,38 @@ class LetterController extends Controller
 
         $letter = Letter::findOrFail($id);
 
+        Log::info('Status awal surat sebelum update', [
+            'id' => $id,
+            'status' => $letter->status,
+            'user_role' => $user->role,
+            'request_data' => $request->all(),
+        ]);
+
         if ($user->role === 'dosen' && !in_array($request->status, ['Proses', 'Ditolak', 'Diterima'])) {
-            return redirect()->route('dashboard')->with('error', 'Dosen hanya dapat mengubah status menjadi Proses, Ditolak, atau Diterima.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Dosen hanya dapat mengubah status menjadi Proses, Ditolak, atau Diterima.'
+            ], 400);
         }
 
         if ($user->role === 'admin') {
             if ($request->status !== 'Selesai') {
-                return redirect()->route('dashboard')->with('error', 'Admin hanya dapat mengubah status menjadi Selesai.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Admin hanya dapat mengubah status menjadi Selesai.'
+                ], 400);
             }
-            // Tambahkan validasi: Admin hanya boleh mengubah status dari "Diterima" ke "Selesai"
             if ($letter->status !== 'Diterima') {
-                return redirect()->route('dashboard')->with('error', 'Admin hanya dapat mengubah status surat yang sudah Diterima menjadi Selesai.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Admin hanya dapat mengubah status surat yang sudah Diterima menjadi Selesai.'
+                ], 400);
             }
         }
 
         $updateData = ['status' => $request->status];
         if ($request->status === 'Selesai') {
-            $updateData['completion_date'] = now()->toDateString();
+            $updateData['completion_date'] = now();
         } else {
             $updateData['completion_date'] = null;
         }
@@ -139,9 +157,16 @@ class LetterController extends Controller
             Log::info('Status surat setelah update', [
                 'id' => $id,
                 'status' => $updatedLetter->status,
+                'completion_date' => $updatedLetter->completion_date,
             ]);
 
-            return redirect()->route('dashboard')->with('success', 'Status surat berhasil diperbarui.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Status surat berhasil diperbarui.',
+                'status' => $updatedLetter->status,
+                'completion_date' => $updatedLetter->completion_date ? $updatedLetter->completion_date->format('d-m-Y') : null,
+                'letter_id' => $id
+            ]);
         } catch (\Exception $e) {
             Log::error('Gagal memperbarui status surat', [
                 'id' => $id,
@@ -149,7 +174,22 @@ class LetterController extends Controller
                 'status_baru' => $request->status,
                 'sql_query' => $e instanceof \PDOException ? $e->queryString : null,
             ]);
-            return redirect()->route('dashboard')->with('error', 'Gagal memperbarui status surat: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui status surat: ' . $e->getMessage()
+            ], 500);
         }
+    }
+
+    public function getLetter($id)
+    {
+        $letter = Letter::findOrFail($id);
+        $file_url = $letter->file_path ? asset('storage/' . $letter->file_path) : null;
+
+        return response()->json([
+            'success' => true,
+            'letter' => $letter,
+            'file_url' => $file_url,
+        ]);
     }
 }
