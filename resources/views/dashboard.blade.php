@@ -554,14 +554,14 @@
                                                 <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
                                             </span>
                                         @elseif (Auth::user()->role == 'dosen')
-                                            <span class="status-text">
+                                            <span class="status-text" id="status-text-{{ $letter->id }}">
                                                 {{ $letter->status ?? 'Tidak tersedia' }}
                                                 <span class="status-dot {{ $letter->status == 'Selesai' ? 'status-selesai' : ($letter->status == 'Proses' ? 'status-proses' : ($letter->status == 'Diterima' ? 'status-diterima' : 'status-ditolak')) }}"></span>
                                             </span>
-                                            <form class="status-form" method="POST" action="{{ route('letters.updateStatus', $letter->id) }}" style="display: inline;">
+                                            <form class="status-form" id="status-form-{{ $letter->id }}" data-letter-id="{{ $letter->id }}" data-original-status="{{ $letter->status }}" style="display: inline;">
                                                 @csrf
                                                 @method('PATCH')
-                                                <select name="status" onchange="this.form.submit()" onclick="event.stopPropagation();">
+                                                <select name="status" onchange="updateStatus({{ $letter->id }})" onclick="event.stopPropagation();">
                                                     <option value="Proses" {{ $letter->status == 'Proses' ? 'selected' : '' }}>Proses</option>
                                                     <option value="Ditolak" {{ $letter->status == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                                                     <option value="Diterima" {{ $letter->status == 'Diterima' ? 'selected' : '' }}>Diterima</option>
@@ -573,7 +573,7 @@
                                                     Diterima
                                                     <span class="status-dot status-diterima"></span>
                                                 </span>
-                                                <form class="status-form" id="status-form-{{ $letter->id }}" data-letter-id="{{ $letter->id }}" style="display: inline;">
+                                                <form class="status-form" id="status-form-{{ $letter->id }}" data-letter-id="{{ $letter->id }}" data-original-status="{{ $letter->status }}" style="display: inline;">
                                                     @csrf
                                                     @method('PATCH')
                                                     <select name="status" onchange="updateStatus({{ $letter->id }})" onclick="event.stopPropagation();">
@@ -810,44 +810,49 @@
                 console.log('Update status response data:', data);
                 if (data.success) {
                     // Update UI
-                    statusText.innerHTML = ''; // Clear existing content
+                    statusText.innerHTML = '';
                     statusText.textContent = data.status;
                     const dot = document.createElement('span');
-                    dot.className = `status-dot status-${data.status.toLowerCase()}`;
+                    dot.className = `status-dot status-${data.status.toLowerCase().replace(' ', '-')}`;
                     statusText.appendChild(dot);
                     form.style.display = 'none'; // Hide form after update
-                    // Update completion date
-                    if (data.completion_date) {
-                        completionDateCell.textContent = data.completion_date;
-                    } else {
-                        completionDateCell.textContent = '-';
-                    }
+                    completionDateCell.textContent = data.completion_date ? data.completion_date : '-';
                     alert(data.message);
                 } else {
                     alert('Gagal memperbarui status: ' + data.message);
-                    select.value = 'Diterima'; // Reset select to original value
+                    select.value = form.dataset.originalStatus || 'Proses'; // Reset ke status awal
                 }
             })
             .catch(error => {
                 console.error('Error updating status:', error);
-                alert('Terjadi kesalahan saat memperbarui status: ' + error.message);
-                select.value = 'Diterima'; // Reset select to original value
+                select.value = form.dataset.originalStatus || 'Proses'; // Reset ke status awal
             });
 
             return false; // Prevent default form submission
         }
+
+        // Tambahkan event listener untuk menyimpan status awal saat halaman dimuat
+        document.querySelectorAll('.status-form').forEach(form => {
+            const select = form.querySelector('select[name="status"]');
+            form.dataset.originalStatus = select.value; // Simpan status awal
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Pastikan form tidak submit secara default
+            });
+        });
+
+        // Pastikan onchange dipanggil dengan benar
+        document.querySelectorAll('select[name="status"]').forEach(select => {
+            select.addEventListener('change', function(e) {
+                const letterId = this.closest('form').getAttribute('data-letter-id');
+                updateStatus(letterId);
+            });
+        });
 
         document.querySelectorAll('.btn-view').forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const letterId = button.closest('tr').getAttribute('data-id');
                 showLetterDetails(letterId);
-            });
-        });
-
-        document.querySelectorAll('.status-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault(); // Prevent default form submission
             });
         });
     </script>

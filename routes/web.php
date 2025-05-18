@@ -43,4 +43,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/settings', [AdminController::class, 'systemSettings'])->name('admin.settings');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard/get-letter/{id}', [DashboardController::class, 'getLetterDetails'])->name('dashboard.getLetter');
+    Route::delete('/admin/users/{user}', [AdminController::class, 'destroy'])->name('admin.users.destroy'); // Rute baru untuk hapus
 });

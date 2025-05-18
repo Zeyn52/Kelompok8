@@ -15,6 +15,7 @@
 
         body {
             display: flex;
+            background: none;
             background-color: #f6f5f7;
             justify-content: center;
             align-items: center;
@@ -23,6 +24,32 @@
             overflow: hidden;
             height: 100vh;
             margin: 0;
+            position: relative;
+        }
+
+        /* Apply the GIF background */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('belajar.gif') no-repeat center center fixed;
+            background-size: cover;
+            z-index: -2; /* Place behind the darkening layer */
+        }
+
+        /* Add a semi-transparent black layer to darken the GIF */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6); /* Semi-transparent black to darken the GIF */
+            z-index: -1; /* Place above the GIF but behind the content */
         }
 
         h1 {
@@ -484,7 +511,7 @@
                     </button>
                 </div>
                 <div class="overlay-panel overlay-right">
-                    <h1 class="title">Start your <br> journey now</h1>
+                    <h1 class="title">Start your <br> SIMAK now</h1>
                     <p>If you don't have an account yet, join us and start your journey.</p>
                     <button class="ghost" id="register">Register
                         <i class="lni lni-arrow-right register"></i>

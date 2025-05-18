@@ -94,6 +94,7 @@ class LetterController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $user = Auth::user();
+        $currentTime = now()->setTimezone('Asia/Jakarta')->format('H:i A d M Y'); // 05:04 PM 18 May 2025
 
         if (!in_array($user->role, ['dosen', 'admin'])) {
             return response()->json([
@@ -108,7 +109,7 @@ class LetterController extends Controller
 
         $letter = Letter::findOrFail($id);
 
-        Log::info('Status awal surat sebelum update', [
+        Log::info('Status awal surat sebelum update [' . $currentTime . ']', [
             'id' => $id,
             'status' => $letter->status,
             'user_role' => $user->role,
@@ -145,7 +146,7 @@ class LetterController extends Controller
         }
 
         try {
-            Log::info('Mengubah status surat', [
+            Log::info('Mengubah status surat [' . $currentTime . ']', [
                 'id' => $id,
                 'status_baru' => $request->status,
                 'completion_date' => $updateData['completion_date'],
@@ -154,7 +155,7 @@ class LetterController extends Controller
             $letter->update($updateData);
 
             $updatedLetter = Letter::findOrFail($id);
-            Log::info('Status surat setelah update', [
+            Log::info('Status surat setelah update [' . $currentTime . ']', [
                 'id' => $id,
                 'status' => $updatedLetter->status,
                 'completion_date' => $updatedLetter->completion_date,
@@ -168,7 +169,7 @@ class LetterController extends Controller
                 'letter_id' => $id
             ]);
         } catch (\Exception $e) {
-            Log::error('Gagal memperbarui status surat', [
+            Log::error('Gagal memperbarui status surat [' . $currentTime . ']', [
                 'id' => $id,
                 'error' => $e->getMessage(),
                 'status_baru' => $request->status,

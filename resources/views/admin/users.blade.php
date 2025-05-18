@@ -74,6 +74,11 @@
             color: #ffffff;
         }
 
+        .sidebar .nav-links li a.active {
+            background: #40916c;
+            color: #ffffff;
+        }
+
         .sidebar .nav-links li a i {
             margin-right: 10px;
             font-size: 18px;
@@ -147,6 +152,34 @@
             margin-bottom: 20px;
         }
 
+        .content-section .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .content-section .card-header h5 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d6a4f;
+            margin: 0;
+        }
+
+        .content-section .card-header select {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #d1d5db;
+            font-size: 13px;
+            color: #333333;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+        }
+
+        .content-section .card-header select:hover {
+            border-color: #2d6a4f;
+        }
+
         .content-section .table {
             width: 100%;
             border-collapse: collapse;
@@ -172,6 +205,23 @@
 
         .content-section .table tbody tr:hover {
             background: #f1faee;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: #ffffff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-sm i {
+            font-size: 12px;
         }
 
         @media (max-width: 768px) {
@@ -228,7 +278,7 @@
                 </li>
             @elseif (Auth::user()->role == 'admin')
                 <li>
-                    <a href="{{ route('admin.users') }}">
+                    <a href="{{ route('admin.users') }}" class="active">
                         <i class="fas fa-users-cog"></i>
                         <span>Kelola Pengguna</span>
                     </a>
@@ -256,8 +306,26 @@
         </div>
 
         <div class="content-section">
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
             <div class="card">
-                <h2>Daftar Pengguna</h2>
+                <div class="card-header">
+                    <h5>Daftar Pengguna</h5>
+                    <select id="roleFilter" onchange="filterByRole()">
+                        <option value="all">Semua Role</option>
+                        <option value="mahasiswa">Mahasiswa</option>
+                        <option value="dosen">Dosen</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
                 <table class="table">
                     <thead>
                         <tr>
@@ -266,20 +334,32 @@
                             <th>Email</th>
                             <th>Role</th>
                             <th>Identifier</th>
+                            <th>Terakhir Login</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="userTable">
                         @forelse ($users as $index => $user)
-                            <tr>
+                            <tr data-role="{{ $user->role }}">
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $user->name ?? 'Tidak tersedia' }}</td>
                                 <td>{{ $user->email ?? 'Tidak tersedia' }}</td>
                                 <td>{{ ucfirst($user->role ?? 'Tidak tersedia') }}</td>
                                 <td>{{ $user->identifier ?? 'Tidak tersedia' }}</td>
+                                <td>{{ $user->last_login ? \Carbon\Carbon::parse($user->last_login)->setTimezone('Asia/Jakarta')->format('H:i A d M Y') : 'Belum login' }}</td>
+                                <td>
+                                    <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5">Tidak ada pengguna yang ditemukan.</td>
+                                <td colspan="7">Tidak ada pengguna yang ditemukan.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -289,5 +369,24 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function filterByRole() {
+            const filterValue = document.getElementById('roleFilter').value;
+            const rows = document.querySelectorAll('#userTable tr');
+
+            rows.forEach(row => {
+                const role = row.getAttribute('data-role');
+                if (filterValue === 'all' || role === filterValue) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            filterByRole();
+        });
+    </script>
 </body>
 </html>

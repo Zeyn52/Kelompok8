@@ -34,7 +34,7 @@ class Letter extends Model
         return $this->belongsTo(User::class, 'identifier', 'identifier');
     }
 
-    // Tambahkan event listener untuk debugging
+    // Tambahkan event listener untuk debugging dan penghapusan file
     protected static function booted()
     {
         static::updating(function ($letter) {
@@ -49,6 +49,18 @@ class Letter extends Model
             Log::info('Setelah update status surat', [
                 'id' => $letter->id,
                 'status' => $letter->status,
+            ]);
+        });
+
+        static::deleting(function ($letter) {
+            // Hapus file fisik jika ada
+            if ($letter->file_path && file_exists(storage_path('app/' . $letter->file_path))) {
+                unlink(storage_path('app/' . $letter->file_path));
+            }
+
+            Log::info('Menghapus surat terkait pengguna secara permanen', [
+                'letter_id' => $letter->id,
+                'identifier' => $letter->identifier,
             ]);
         });
     }
